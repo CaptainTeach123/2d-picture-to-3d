@@ -33,6 +33,7 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 5. Outputs that should differ must differ. Every "studio" preview was a copy of its golden-hour pair, unnoticed until the index sheet was viewed. [C]
 6. For video, decode frames from the final MP4 and diff across every cut. Use contact sheets at 1 s to find idle stretches. [C]
    Measure flicker on frames where the camera is still; a moving camera gives large differences that mean nothing. Check signed colour shift as well as absolute difference, to tell compression from a real shift. [N]
+   Clean frames do not prove the motion makes sense. Every frame and flicker check passed on a film the owner rejected at first sight. Measure the motion itself: share moving backward, reversals per piece, neighbours moving against each other, and block matching on rendered frames against the intended direction. [N]
 7. Log every conflict with the reference as a numbered discrepancy with the decision made. [C]
 8. Add what you learned to this file, as one line with a project tag.
 
@@ -94,7 +95,7 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 - Crossfade from the last reveal frame into the held still, or sampling differences pop at the join. [C]
 - Partial re-render: find when the changed object first appears, delete frames from there, and let a resumable renderer fill the gap. [C]
 - Drive heavy animation from plain functions of the frame number, with no keys: 756,000 vertices updated from numpy tables each frame, at 1.2 s per frame in total. Nothing in the file can override it, though the blend will not play by itself. [N]
-- Objects waiting to appear still cast shadows, even collapsed to nothing. Park them below the ground. [N]
+- Objects waiting to appear still cast shadows, even collapsed to nothing. Park them below the ground, and for a reveal along a piece, park the part not yet reached the same way; left at height it stands as a fin. [N]
 - A slow reveal needs checking in seconds per stage. A noise-threshold wipe that spans 5 s on paper can open in 1. [N]
 
 ## Tooling
@@ -103,6 +104,8 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 - Run analysis Python with `-P`. [C]
 - Long Bash heredocs with nested quotes can fail. Write patch scripts to a file instead. [C]
 - Chain build and render steps so a failure stops the chain. [N]
+- Black patches with straight edges on stacked transparent surfaces in EEVEE (dithered) were depth ties, not textures: strokes 0.1 micron apart. Keep overlapping pieces at least 10 microns apart and narrow the camera clip range around the subject. 3,025 black pixels fell to 80. [N]
+- To find what a black patch is, swap one thing per render: canvas to magenta, world to green, colour to constant. It took 3 renders to rule out all three, then a list of the quads over the spot showed the tie. [N]
 - Perceptually lossless H.264 at 2728 px came to 765 MB for 58 s of detailed motion. Encode a smaller share version as well (189 MB at 1364 px). [N]
 - Decode huge JPEGs at reduced scale with PIL `draft`: a 696 MB scan decoded at 1/4 scale in 6 s. [N]
 - If background renders FINISHED but write nothing, or `import idna` fails, check the install: files had gone missing from the Blender folder, with a cleanup tool the suspected cause. [S2]
@@ -113,7 +116,15 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 - Test the riskiest idea in the cheapest medium first. A 2D test showed moving strokes held up before any 3D was built. [N]
 - Make motion from the artwork's own marks: split it into strokes that each carry their own original pixels, rather than warping the image. [N]
 - Give pieces a margin of their neighbours' true pixels, opened only once all are placed. Small moves then open almost no gaps, and at rest the image is unchanged. Keep edges tight while pieces land, or the margin reads as a halo. [N]
-- Have each piece ride its own flow line and send a travelling wave through the phases, so it reads as flow while every piece can return exactly home. [N]
+- A travelling wave of pieces sliding back and forth reads as jitter, not flow, however smooth it is. It was rejected on sight: every stroke reversed each 1.2 s and went nowhere. Motion needs a cause the viewer can name, and each part moves as what it is: wind flows, a tree bends from its foot, land stays still. [N]
+- For a steady flow, keep the still artwork underneath and run moving copies over it, so the pattern stays and paint travels through it, like water in a river. Each piece runs forward, lifts away from its tail and restarts hidden at home. Nothing has to reverse, no gap opens, and the film lands exactly on the original. [N]
+- A line field has no direction. Get it from a stream function fitted to the lines (least squares on grad psi along the line, with psi fixed on the walls and a source at each eye). It solved in 1 s and cut neighbours moving against each other from 25 % to 0.7 %, where growing signs over a cell graph could not make eddies turn opposite ways. [N]
+- Move pieces as bodies on one track through their centre. Letting each vertex follow its own flow line fanned and smeared them near eyes. [N]
+- End each run before a piece reaches a clearly different tone, and slow pieces towards an eye and stop them short. Dark accents crossing pale paint and strokes piling into a tight spiral both looked wrong. [N]
+- A conveyor's start delay sets its spacing, scaled by 1 - g x run for delay g x distance. At g = 1/run every piece lands in one place. Use about 1/(3 x run), positive, so changes travel downstream, and give each stream its own offset so they never form a line. [N]
+- Everything on screen should come from one process. A scrubbed-on colour wash under the strokes read as a foreign blue bleed; strokes straight onto bare linen did not. [N]
+- Start a build where the camera starts, and grow it from painted areas outward (Dijkstra over the cell graph, cheap along strokes, dear across them). Random order within a layer looks like popcorn. [N]
+- A still neighbour must not carry a moving object's pixels in its overlap margin: it leaves a ghost outline when the object moves. Clear them from the margin and give the object something real to reveal behind it. [N]
 - Keep a single value that mixes lit shading with the flat scan, so the piece can land on the original's exact colours, then crossfade to the scan itself. [N]
 - Take material from the reference when it exists. A procedural weave looked synthetic; linen quilted from the scan's bare edge looked real. Avoid mirrored tiles, which show symmetry. [N]
 - Say what is estimated. Stroke outlines, paint height and painting order here are estimates, and the report has to state that. [N]
