@@ -3,7 +3,7 @@
 Lessons from real render projects, written for whoever runs the next render (mostly Claude). Each line comes from
 something that went wrong or was measured on a project, not from general advice.
 
-Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C]** Cliff House.
+Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C]** Cliff House, **[N]** The Starry Night.
 
 - Read **Preflight** before every render.
 - Read **Review** after every render.
@@ -16,11 +16,12 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 2. **Right frame.** In an animated blend, set the frame yourself. Stills, masks and previews all depend on it. [C]
 3. **Keys win.** Keyed values (`hide_render`, light energy, scene properties) override a script's change at render time. Clear those keys first, or the change silently does nothing. [C]
 4. **Still before sequence.** Render one final-resolution still and review it in crops before launching any sequence. It took 18 s; the review that came after the hour-long job cost a 35-minute re-render. [C]
-5. **Right size for the question.** Water needs full-frame renders, because screen-space reflections vanish in border crops. Fine detail needs final resolution: 1536 px tests hid defects that 3840 px showed. [S2] [C]
-6. **Camera.** The locked camera is never animated. Lens shift is measured in the fitted sensor side. Late shots stay inside the area that has geometry. [C]
-7. **Outputs.** Test renders go to a test folder with an explicit path, never over a deliverable.
-8. **One heavy job at a time.** Concurrent Blender renders run out of memory. Long jobs run in the background and must be resumable. [C]
-9. **FINISHED but no file?** Check for an empty compositor with `use_compositing` on, then for a damaged Blender install. [S2]
+5. **Preview the whole timeline.** After the still, render every 6th frame at half size and read a contact sheet. It took 3 minutes and found 4 problems before a 32-minute render. [N]
+6. **Right size for the question.** Water needs full-frame renders, because screen-space reflections vanish in border crops. Fine detail needs final resolution: 1536 px tests hid defects that 3840 px showed. [S2] [C]
+7. **Camera.** The locked camera is never animated. Lens shift is measured in the fitted sensor side. Late shots stay inside the area that has geometry. [C]
+8. **Outputs.** Test renders go to a test folder with an explicit path, never over a deliverable. If a build step fails, stop: renders from the old blend look like real results. [N]
+9. **One heavy job at a time.** Concurrent Blender renders run out of memory. Long jobs run in the background and must be resumable. [C]
+10. **FINISHED but no file?** Check for an empty compositor with `use_compositing` on, then for a damaged Blender install. [S2]
 <!-- preflight:end -->
 
 ## Review
@@ -31,6 +32,7 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 4. A good metric does not prove the image is right. Landmark lines passed while the palm species, rafter direction and rocks on the paving were wrong, and decor sat 40 m away. [S1]
 5. Outputs that should differ must differ. Every "studio" preview was a copy of its golden-hour pair, unnoticed until the index sheet was viewed. [C]
 6. For video, decode frames from the final MP4 and diff across every cut. Use contact sheets at 1 s to find idle stretches. [C]
+   Measure flicker on frames where the camera is still; a moving camera gives large differences that mean nothing. Check signed colour shift as well as absolute difference, to tell compression from a real shift. [N]
 7. Log every conflict with the reference as a numbered discrepancy with the decision made. [C]
 8. Add what you learned to this file, as one line with a project tag.
 
@@ -91,14 +93,30 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 - 9:16 needs its own framing, ending on an exact window of the locked view so a pull-out can land on the band. [C]
 - Crossfade from the last reveal frame into the held still, or sampling differences pop at the join. [C]
 - Partial re-render: find when the changed object first appears, delete frames from there, and let a resumable renderer fill the gap. [C]
+- Drive heavy animation from plain functions of the frame number, with no keys: 756,000 vertices updated from numpy tables each frame, at 1.2 s per frame in total. Nothing in the file can override it, though the blend will not play by itself. [N]
+- Objects waiting to appear still cast shadows, even collapsed to nothing. Park them below the ground. [N]
+- A slow reveal needs checking in seconds per stage. A noise-threshold wipe that spans 5 s on paper can open in 1. [N]
 
 ## Tooling
 
 - Run Blender with `-b --factory-startup` and enable any needed add-ons inside the script. [S2]
 - Run analysis Python with `-P`. [C]
 - Long Bash heredocs with nested quotes can fail. Write patch scripts to a file instead. [C]
+- Chain build and render steps so a failure stops the chain. [N]
+- Perceptually lossless H.264 at 2728 px came to 765 MB for 58 s of detailed motion. Encode a smaller share version as well (189 MB at 1364 px). [N]
+- Decode huge JPEGs at reduced scale with PIL `draft`: a 696 MB scan decoded at 1/4 scale in 6 s. [N]
 - If background renders FINISHED but write nothing, or `import idna` fails, check the install: files had gone missing from the Blender folder, with a cleanup tool the suspected cause. [S2]
 - StableGen multi-view runs need free RAM, and its scenes carry an empty compositor tree: set `scene.render.use_compositing = False`. [S2]
+
+## Animating a painting
+
+- Test the riskiest idea in the cheapest medium first. A 2D test showed moving strokes held up before any 3D was built. [N]
+- Make motion from the artwork's own marks: split it into strokes that each carry their own original pixels, rather than warping the image. [N]
+- Give pieces a margin of their neighbours' true pixels, opened only once all are placed. Small moves then open almost no gaps, and at rest the image is unchanged. Keep edges tight while pieces land, or the margin reads as a halo. [N]
+- Have each piece ride its own flow line and send a travelling wave through the phases, so it reads as flow while every piece can return exactly home. [N]
+- Keep a single value that mixes lit shading with the flat scan, so the piece can land on the original's exact colours, then crossfade to the scan itself. [N]
+- Take material from the reference when it exists. A procedural weave looked synthetic; linen quilted from the scan's bare edge looked real. Avoid mirrored tiles, which show symmetry. [N]
+- Say what is estimated. Stroke outlines, paint height and painting order here are estimates, and the report has to state that. [N]
 
 ## Working with the owner
 
