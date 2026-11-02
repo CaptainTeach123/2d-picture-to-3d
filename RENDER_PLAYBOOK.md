@@ -3,7 +3,7 @@
 Lessons from real render projects, written for whoever runs the next render (mostly Claude). Each line comes from
 something that went wrong or was measured on a project, not from general advice.
 
-Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C]** Cliff House, **[N]** The Starry Night.
+Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C]** Cliff House, **[N]** The Starry Night, **[M]** Impression, Sunrise.
 
 - Read **Preflight** before every render.
 - Read **Review** after every render.
@@ -35,6 +35,8 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
    Measure flicker on frames where the camera is still; a moving camera gives large differences that mean nothing. Check signed colour shift as well as absolute difference, to tell compression from a real shift. [N]
    Clean frames do not prove the motion makes sense. Every frame and flicker check passed on a film the owner rejected at first sight. Measure the motion itself: share moving backward, reversals per piece, neighbours moving against each other, and block matching on rendered frames against the intended direction. [N]
    Blank frames and changing content fake camera and sharpness spikes: phase correlation on bare canvas read 324 px, and a fixed crop read a 23 % sharpness step that was a smooth 5 % drift on painted pixels alone. Measure on painted pixels before trusting a spike. [N]
+   A last frame that matches the reference says nothing about the middle of a build. A film that ended on 0 differing values still showed stripes for 12 minutes, and in a later version a flat patch until the last touches covered it. Read final-size frames from every stage. [M]
+   To prove a repair stayed in its area, carry each frame's differences back through the camera onto the canvas and test them against the repair's mask. Differences at every 12 s came to 21,731 canvas cells, all inside and none out. [M]
 7. Log every conflict with the reference as a numbered discrepancy with the decision made. [C]
 8. Add what you learned to this file, as one line with a project tag.
 
@@ -95,6 +97,7 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 - 9:16 needs its own framing, ending on an exact window of the locked view so a pull-out can land on the band. [C]
 - Crossfade from the last reveal frame into the held still, or sampling differences pop at the join. [C]
 - Partial re-render: find when the changed object first appears, delete frames from there, and let a resumable renderer fill the gap. [C]
+- A repair that leaves earlier strokes alone needs only the later chunks. Run the plan forward unfilmed to the first changed chunk (4,515 strokes took 61 s), film from there, and join to the old chunks. Six of ten chunks took 62 minutes, and the join matched the old film. [M]
 - Drive heavy animation from plain functions of the frame number, with no keys: 756,000 vertices updated from numpy tables each frame, at 1.2 s per frame in total. Nothing in the file can override it, though the blend will not play by itself. [N]
 - Objects waiting to appear still cast shadows, even collapsed to nothing. Park them below the ground, and for a reveal along a piece, park the part not yet reached the same way; left at height it stands as a fin. [N]
 - A slow reveal needs checking in seconds per stage. A noise-threshold wipe that spans 5 s on paper can open in 1. [N]
@@ -109,6 +112,13 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 - To find what a black patch is, swap one thing per render: canvas to magenta, world to green, colour to constant. It took 3 renders to rule out all three, then a list of the quads over the spot showed the tie. [N]
 - Perceptually lossless H.264 at 2728 px came to 765 MB for 58 s of detailed motion. Encode a smaller share version as well (189 MB at 1364 px). [N]
 - A 12-minute detailed film at 2046 px took 52 GB of q95 JPEG frames and 3.66 GB at HIGH, and left the disk 98 % full. Add up frames and old passes before a long film. [N]
+- Pipe raw frames straight into the encoder in 3-minute chunks, saving the canvas after each one. A 30-minute film came to 1.7 GB at crf 16, kept no frames on disk, and could resume after any chunk. [M]
+- The `imageio-ffmpeg` wheel from PyPI unzips to a full ffmpeg binary with nothing installed. Check its SHA-256 against PyPI, and note that it has no ffprobe. [M]
+- FFmpeg colour flags on the encoder did not reach the stream, which read `unknown`. Set them with the `h264_metadata` bitstream filter on the join, and `setparams` before a re-encode, then read the stream line. [M]
+- x264 explains two false alarms: low-change runs that break every 8.3 s are keyframes every 250 frames, and a chunk's first keyframe gives a one-frame step of mean 1.1 (signed 0) on a still picture. [M]
+- Compare colour with the matrix written out by hand before trusting the eye. Test JPEGs looked more saturated than the video and measured 21.42 against 21.40. [M]
+- float32 means over a whole frame drift by several levels, which faked a colour error on the first frame. Use float64 for statistics. [M]
+- A whole-image FFT smears canvas weave peaks because the weave drifts across the canvas. Read the peaks from tiles. [M]
 - Decode huge JPEGs at reduced scale with PIL `draft`: a 696 MB scan decoded at 1/4 scale in 6 s. It stops at the nearest power of 2, so resize after it if the size matters. [N]
 - If background renders FINISHED but write nothing, or `import idna` fails, check the install: files had gone missing from the Blender folder, with a cleanup tool the suspected cause. [S2]
 - StableGen multi-view runs need free RAM, and its scenes carry an empty compositor tree: set `scene.render.use_compositing = False`. [S2]
@@ -133,7 +143,22 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 - Read the technical study of the artwork before planning stages. A sketch stage from general knowledge contradicted the canvas examination (no underdrawing found), which also gave the real order: reserves, mid-blue first, stars after. Separate what is documented from your choices in the report. [N]
 - For "how it was painted", fix stroke rate before anything else. Hundreds of strokes a second read as a morph however fine they are and were rejected; one at a time at about 10 a second reads as painting, at 12 minutes for 6,000 strokes. [N]
 - Even at one at a time, 10 strokes a second leaves 79 % of strokes forming in 3 frames or fewer at 30 fps. They land more than they draw out. Half a second each would run an hour, so raise that trade-off early. [N]
-- One pass, each stroke laying the scan's own pixels once with flat settled height and wet ridges that decay in 0.45 s, lands on the original (mean 2.7 of 255, none over 40) with no fade. Layered passes overwrote finished paint and needed a fade that hid 4.2 % gaps. [N]
+- Agree film length first, because it sets the stroke count. 4,862 strokes over 30 minutes gave a median 0.26 s to form, 92 % at 6 frames or more and none at 3 or fewer. [M]
+- One pass, each stroke laying the scan's own pixels once with flat settled height and wet ridges that decay in 0.45 s, lands on the original (mean 2.7 of 255, none over 40) with no fade. Layered passes without a done mask overwrote finished paint and needed a fade that hid 4.2 % gaps. [N]
+- Layers can land exactly with no fade too. Aim them at the plate blurred to brush size (sigma 70, 30, 12, 5), then finish with strokes that lay the plate's own pixels, and let coverage above 0.55 mark a pixel done for good. The canvas ended on the scan with 0 values differing. [M]
+- Simulate a stroke in brush space, one row across the bristles per 2 px, with each bristle's load and colour and pickup of wet paint. Split tips, dry-brush on thread tops and soft wet edges all follow from it with no texture. Pickup had to come down to an eighth of its first value. [M]
+- Inertia and turn limits stop strokes following a direction field into worm shapes, and holes must be masked out of the field first. [M]
+- Finishing on a grid showed as stripes for 12 minutes. Passages with wandering edges, seeded at the widest gap, fixed it. [M]
+- The last 2 % of gaps made about 1,600 tiny strokes until long strokes were run through the clusters. [M]
+- Late strokes that fill tiny gaps show almost nothing: about 57 s of a 30-minute film ran 3 to 7 s at a time with no visible change. Only a retime fixes that, so check it in the plan. [M]
+- Under objects painted last, fill with quilted real brushwork from clear canvas and put the weave back in place. Mirrored detail went flat. [M]
+- A quilt that skips blocks with no clear source leaves flat patches that read as bare paint for minutes. Scan the fill's local high-pass energy against the real canvas and fill the low spots with smaller blocks. [M]
+- A touch cut out by mask has to keep its stage. Warm scraps filed with the water dashes painted the sun's reflection before the sun. Check each late colour against the stage that lays it. [M]
+- Close masks widely, so that no scraps or ghost letters are left in the plate. A faint date showed through until it was closed by 40 px. [M]
+- Straight cuts in last touches read as a wipe. Wobble their edges and give each bristle its own end. [M]
+- Add relief only where the colour changes and blur the bump before taking its gradient, or outlines emboss. [M]
+- Check strokes against the camera view. A smoothed follow-camera left 1.6 % of strokes out of frame at their midpoint, none in the last stages, which is what mattered. [M]
+- If no technical study can be found, say so and label the order as a reading. For this work only the few hours, the quay contours, the last touches and the later date were documented; ground and layers were not. [M]
 - Superpixel cells are fragments of strokes. Join them end to end along the brushwork, then take each spine from the joined mark's own long axis: cell paths ran 91 px, real marks 158 px. [N]
 - Holes waiting for a late stage read as objects. Ridge gaps looked like snow for minutes, so close thin gaps straight after their neighbours; large round reserves read fine. [N]
 - A 2D numpy paint canvas with only dirty tiles reshaded ran 0.2 s per frame at 8184 px, against 1.4 s in EEVEE, with no depth ties. Resample every frame through one path: switching between a mip and the full canvas made a sharpness pop mid-zoom. [N]
