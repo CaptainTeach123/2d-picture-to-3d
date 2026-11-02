@@ -34,6 +34,7 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 6. For video, decode frames from the final MP4 and diff across every cut. Use contact sheets at 1 s to find idle stretches. [C]
    Measure flicker on frames where the camera is still; a moving camera gives large differences that mean nothing. Check signed colour shift as well as absolute difference, to tell compression from a real shift. [N]
    Clean frames do not prove the motion makes sense. Every frame and flicker check passed on a film the owner rejected at first sight. Measure the motion itself: share moving backward, reversals per piece, neighbours moving against each other, and block matching on rendered frames against the intended direction. [N]
+   Blank frames and changing content fake camera and sharpness spikes: phase correlation on bare canvas read 324 px, and a fixed crop read a 23 % sharpness step that was a smooth 5 % drift on painted pixels alone. Measure on painted pixels before trusting a spike. [N]
 7. Log every conflict with the reference as a numbered discrepancy with the decision made. [C]
 8. Add what you learned to this file, as one line with a project tag.
 
@@ -107,7 +108,8 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 - Black patches with straight edges on stacked transparent surfaces in EEVEE (dithered) were depth ties, not textures: strokes 0.1 micron apart. Keep overlapping pieces at least 10 microns apart and narrow the camera clip range around the subject. 3,025 black pixels fell to 80. [N]
 - To find what a black patch is, swap one thing per render: canvas to magenta, world to green, colour to constant. It took 3 renders to rule out all three, then a list of the quads over the spot showed the tie. [N]
 - Perceptually lossless H.264 at 2728 px came to 765 MB for 58 s of detailed motion. Encode a smaller share version as well (189 MB at 1364 px). [N]
-- Decode huge JPEGs at reduced scale with PIL `draft`: a 696 MB scan decoded at 1/4 scale in 6 s. [N]
+- A 12-minute detailed film at 2046 px took 52 GB of q95 JPEG frames and 3.66 GB at HIGH, and left the disk 98 % full. Add up frames and old passes before a long film. [N]
+- Decode huge JPEGs at reduced scale with PIL `draft`: a 696 MB scan decoded at 1/4 scale in 6 s. It stops at the nearest power of 2, so resize after it if the size matters. [N]
 - If background renders FINISHED but write nothing, or `import idna` fails, check the install: files had gone missing from the Blender folder, with a cleanup tool the suspected cause. [S2]
 - StableGen multi-view runs need free RAM, and its scenes carry an empty compositor tree: set `scene.render.use_compositing = False`. [S2]
 
@@ -125,9 +127,16 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 - Everything on screen should come from one process. A scrubbed-on colour wash under the strokes read as a foreign blue bleed; strokes straight onto bare linen did not. [N]
 - Start a build where the camera starts, and grow it from painted areas outward (Dijkstra over the cell graph, cheap along strokes, dear across them). Random order within a layer looks like popcorn. [N]
 - A still neighbour must not carry a moving object's pixels in its overlap margin: it leaves a ghost outline when the object moves. Clear them from the margin and give the object something real to reveal behind it. [N]
-- Keep a single value that mixes lit shading with the flat scan, so the piece can land on the original's exact colours, then crossfade to the scan itself. [N]
-- Take material from the reference when it exists. A procedural weave looked synthetic; linen quilted from the scan's bare edge looked real. Avoid mirrored tiles, which show symmetry. [N]
+- If pieces are lit in 3D, keep a single value that mixes lit shading with the flat scan, so the piece can land on the original's exact colours, then crossfade to the scan itself. A single 2D pass needs neither (see below). [N]
+- Take material from the reference when it exists. A procedural weave looked synthetic; linen quilted from the scan's bare edge looked real. Avoid mirrored tiles, which show symmetry. Check the colour against sources too: the bare tan linen was wrong, the ground was off-white priming, so only the weave's value was kept. [N]
 - Say what is estimated. Stroke outlines, paint height and painting order here are estimates, and the report has to state that. [N]
+- Read the technical study of the artwork before planning stages. A sketch stage from general knowledge contradicted the canvas examination (no underdrawing found), which also gave the real order: reserves, mid-blue first, stars after. Separate what is documented from your choices in the report. [N]
+- For "how it was painted", fix stroke rate before anything else. Hundreds of strokes a second read as a morph however fine they are and were rejected; one at a time at about 10 a second reads as painting, at 12 minutes for 6,000 strokes. [N]
+- Even at one at a time, 10 strokes a second leaves 79 % of strokes forming in 3 frames or fewer at 30 fps. They land more than they draw out. Half a second each would run an hour, so raise that trade-off early. [N]
+- One pass, each stroke laying the scan's own pixels once with flat settled height and wet ridges that decay in 0.45 s, lands on the original (mean 2.7 of 255, none over 40) with no fade. Layered passes overwrote finished paint and needed a fade that hid 4.2 % gaps. [N]
+- Superpixel cells are fragments of strokes. Join them end to end along the brushwork, then take each spine from the joined mark's own long axis: cell paths ran 91 px, real marks 158 px. [N]
+- Holes waiting for a late stage read as objects. Ridge gaps looked like snow for minutes, so close thin gaps straight after their neighbours; large round reserves read fine. [N]
+- A 2D numpy paint canvas with only dirty tiles reshaded ran 0.2 s per frame at 8184 px, against 1.4 s in EEVEE, with no depth ties. Resample every frame through one path: switching between a mip and the full canvas made a sharpness pop mid-zoom. [N]
 
 ## Working with the owner
 
