@@ -85,6 +85,9 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 - A part that rises out of a surface at a shallow angle (a leaf lifting off a tube) pinches in the boolean. Keep its underside buried so it meets the surface with steep walls; that also leaves no undercut to support. [T]
 - Decor projected onto a tube from the front and clamped at the silhouette folds onto itself near the edge and breaks the boolean around it (382 bad edges from one leaf). Read in-plane distance as arc length around the tube instead. [T]
 - Two pieces touching at one exact spot (a ball on a piping line, a berry on a leaf) flip between clean and pinched with any change in triangulation. Move one so they clearly cross, then re-check. [T]
+- MANIFOLD can still leave 1 or 2 pinched edges a few microns long, and they move with any change to the model (its tolerance scales with the whole mesh). Scan a cosmetic parameter instead: stripe phases 0.66 to 0.73 all came out at 0 bad edges. Welding vertices within 5 microns made it worse (2 bad edges became 24). [T]
+- A curl that ends in a wire is cleanest as one sweep whose radius tapers into the wire. A separate wire glued onto the tip left a lump. [T]
+- Helix lines on a tight, tapering tip hook and crease, and fading them out leaves a groove. End them under a ring round the tube where it is still thick. [T]
 
 ## Materials and colour
 
@@ -202,6 +205,8 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 - A 2D numpy paint canvas with only dirty tiles reshaded ran 0.2 s per frame at 8184 px, against 1.4 s in EEVEE, with no depth ties. Resample every frame through one path: switching between a mip and the full canvas made a sharpness pop mid-zoom. [N]
 
 ## Working with the owner
+
+- For physical models the bar is clean, not busy. Scattered balls, leaves hanging off a pilaster's edge, a flat-bar frame with balls on it and stringy relief leaves were all rejected as messy. One symmetric motif per face, kept inside the face, passed. Check close-ups of every detail before presenting; full views hid all of it. [T]
 
 - Reference fidelity is the main quality bar. Double-check before presenting. [W] [S1]
 - "Next project" with no brief means ask for the brief; do not resume set-aside work. [W]
