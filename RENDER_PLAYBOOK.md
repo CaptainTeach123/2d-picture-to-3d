@@ -93,7 +93,9 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 - A tube that narrows from its rounded start creases where the hemisphere cap meets it. Use the sphere tangent to the cone there: centre r*k behind the start, radius r*sqrt(1+k^2), with k = -dr/ds. [T]
 - A profile swept round a path where a notch arc meets a straight side gets a mitre from the arc's first tiny segment, which spikes the inner edge. Blend each notch into the sides with convex arcs larger than the profile's half-width. [T]
 - 128 segments on a 16 mm radius (2.8 deg steps) showed bands even on a print-scale model; 192 segments plus smooth-by-angle shading in the .blend read as smooth. [T]
-- Measure stripe angles on the reference; do not assume. I took the thick part's stripes to run almost along the tube, but the bands crossed it at 40-45 deg. Decorations that all face the front zigzag round the tube, so no single helix band holds them. Choose the phase that keeps lines furthest from every item, then nudge items (2.5 mm at most) onto their band centres. [T]
+- Choose stripe angles from test renders, not only the reference. Near-axial stripes and the measured 40-45 deg both bent into an S across the bulb's shoulder and were called "odd". Four fast renders (30, 42, 55, 65 deg) settled it: about 54 deg, constant up the whole cane, read as even spirals. [T]
+- Don't scatter ornaments; lay them in groups along one stripe band. A group (sprig, star, sprig or gem, star, gem) is centred where a red band faces the front, with items spaced evenly along it. Tune the stripe angle a few degrees so a second group also lands on a red band. Lone gems and beads off any pattern read as "random". [T]
+- Add a fast build mode that skips the slow smoothing pass. Layout checks then take 30 s instead of 6 minutes, and the full pass runs once at the end. [T]
 - Join a bulb to a flat seat with a torus fillet about the vertical axis through the bulb's sphere, tangent to both. An offset ellipsoid "puddle" left a crease. [T]
 
 ## Materials and colour
@@ -216,6 +218,7 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 - For physical models the bar is clean, not busy. Scattered balls, leaves hanging off a pilaster's edge, a flat-bar frame with balls on it and stringy relief leaves were all rejected as messy. One symmetric motif per face, kept inside the face, passed. Check close-ups of every detail before presenting; full views hid all of it. [T]
 - When the owner says a reference feature looks fragile, strengthen it modestly and keep it. Swapping the thin gold wire for a thick ball-ended volute was rejected; they wanted the wire about 10 % thicker. [T]
 - Compare each detail with the reference at the same framing: an orthographic front render of the same pixel region, side by side with the reference crop. It showed what full views hid: spindly scrolls, leaves half the size, berries too small. The owner had called it "sloppy" and asked to "really look at" the reference. Size ornaments from the reference crops, make clusters compact, and keep stripe lines out from under them. [T]
+- For a printed piece that will be handled, durability beats matching the reference. The owner asked for the holly that bent back past the column edge to sit on the face instead. Make the build fail if any leaf vertex leaves its face (an assert caught one 0.03 mm over). Keep berries few; three to a cluster plus gold balls everywhere was "way too common". [T]
 
 - Reference fidelity is the main quality bar. Double-check before presenting. [W] [S1]
 - "Next project" with no brief means ask for the brief; do not resume set-aside work. [W]
