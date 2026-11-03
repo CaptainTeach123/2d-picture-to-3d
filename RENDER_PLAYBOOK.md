@@ -85,13 +85,16 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 - A part that rises out of a surface at a shallow angle (a leaf lifting off a tube) pinches in the boolean. Keep its underside buried so it meets the surface with steep walls; that also leaves no undercut to support. [T]
 - Decor projected onto a tube from the front and clamped at the silhouette folds onto itself near the edge and breaks the boolean around it (382 bad edges from one leaf). Read in-plane distance as arc length around the tube instead. [T]
 - Two pieces touching at one exact spot (a ball on a piping line, a berry on a leaf) flip between clean and pinched with any change in triangulation. Move one so they clearly cross, then re-check. [T]
-- MANIFOLD can still leave 1 or 2 pinched edges a few microns long, and they move with any change to the model (its tolerance scales with the whole mesh). Scan a cosmetic parameter instead: stripe phases 0.66 to 0.73 all came out at 0 bad edges. Welding vertices within 5 microns made it worse (2 bad edges became 24). [T]
+- MANIFOLD can still leave 1 or 2 pinched edges a few microns long, and they move with any change to the model (its tolerance scales with the whole mesh). Scan a cosmetic parameter instead: stripe phases 0.66 to 0.73 all came out at 0 bad edges. Welding vertices within 5 microns made it worse (2 bad edges became 24). The SDF pass below ends this chase. [T]
+- Smooth a print model through Blender 5.2's SDF grid nodes: Mesh to SDF Grid, SDF Grid Offset by -r then +r (a negative distance grows the solid), then Grid to Mesh. It fillets every concave join at radius r and rebuilds one watertight surface. At 0.1 mm voxels with adaptivity 0.15 the surface came out crinkled. At 0.07 mm with adaptivity 0 it was smooth: 20M triangles, decimated to 1.8M, about 160 s, 0 bad edges, bed face flat within 0.05 mm. Keep gaps that must stay open wider than 2r. [T]
 - A curl that ends in a wire is cleanest as one sweep whose radius tapers into the wire. A separate wire glued onto the tip left a lump. [T]
 - Helix lines on a thin, tightly bent tip circle its inner rim and read as hooks. Base the twist on max(radius, 7 mm) so they run along the curl, and thin the line's own radius to a point instead of sinking it (sinking left a groove). Ending them under a ring was rejected as messy. [T]
 - Placing decor on a tube via the nearest centreline sample leaves ridges every sample under smooth shading. Project onto the centreline segment and interpolate centre and radius. [T]
 - A tube that narrows from its rounded start creases where the hemisphere cap meets it. Use the sphere tangent to the cone there: centre r*k behind the start, radius r*sqrt(1+k^2), with k = -dr/ds. [T]
 - A profile swept round a path where a notch arc meets a straight side gets a mitre from the arc's first tiny segment, which spikes the inner edge. Blend each notch into the sides with convex arcs larger than the profile's half-width. [T]
 - 128 segments on a 16 mm radius (2.8 deg steps) showed bands even on a print-scale model; 192 segments plus smooth-by-angle shading in the .blend read as smooth. [T]
+- Measure stripe angles on the reference; do not assume. I took the thick part's stripes to run almost along the tube, but the bands crossed it at 40-45 deg. Decorations that all face the front zigzag round the tube, so no single helix band holds them. Choose the phase that keeps lines furthest from every item, then nudge items (2.5 mm at most) onto their band centres. [T]
+- Join a bulb to a flat seat with a torus fillet about the vertical axis through the bulb's sphere, tangent to both. An offset ellipsoid "puddle" left a crease. [T]
 
 ## Materials and colour
 
@@ -212,6 +215,7 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 
 - For physical models the bar is clean, not busy. Scattered balls, leaves hanging off a pilaster's edge, a flat-bar frame with balls on it and stringy relief leaves were all rejected as messy. One symmetric motif per face, kept inside the face, passed. Check close-ups of every detail before presenting; full views hid all of it. [T]
 - When the owner says a reference feature looks fragile, strengthen it modestly and keep it. Swapping the thin gold wire for a thick ball-ended volute was rejected; they wanted the wire about 10 % thicker. [T]
+- Compare each detail with the reference at the same framing: an orthographic front render of the same pixel region, side by side with the reference crop. It showed what full views hid: spindly scrolls, leaves half the size, berries too small. The owner had called it "sloppy" and asked to "really look at" the reference. Size ornaments from the reference crops, make clusters compact, and keep stripe lines out from under them. [T]
 
 - Reference fidelity is the main quality bar. Double-check before presenting. [W] [S1]
 - "Next project" with no brief means ask for the brief; do not resume set-aside work. [W]
