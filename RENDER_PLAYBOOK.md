@@ -87,7 +87,11 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 - Two pieces touching at one exact spot (a ball on a piping line, a berry on a leaf) flip between clean and pinched with any change in triangulation. Move one so they clearly cross, then re-check. [T]
 - MANIFOLD can still leave 1 or 2 pinched edges a few microns long, and they move with any change to the model (its tolerance scales with the whole mesh). Scan a cosmetic parameter instead: stripe phases 0.66 to 0.73 all came out at 0 bad edges. Welding vertices within 5 microns made it worse (2 bad edges became 24). [T]
 - A curl that ends in a wire is cleanest as one sweep whose radius tapers into the wire. A separate wire glued onto the tip left a lump. [T]
-- Helix lines on a tight, tapering tip hook and crease, and fading them out leaves a groove. End them under a ring round the tube where it is still thick. [T]
+- Helix lines on a thin, tightly bent tip circle its inner rim and read as hooks. Base the twist on max(radius, 7 mm) so they run along the curl, and thin the line's own radius to a point instead of sinking it (sinking left a groove). Ending them under a ring was rejected as messy. [T]
+- Placing decor on a tube via the nearest centreline sample leaves ridges every sample under smooth shading. Project onto the centreline segment and interpolate centre and radius. [T]
+- A tube that narrows from its rounded start creases where the hemisphere cap meets it. Use the sphere tangent to the cone there: centre r*k behind the start, radius r*sqrt(1+k^2), with k = -dr/ds. [T]
+- A profile swept round a path where a notch arc meets a straight side gets a mitre from the arc's first tiny segment, which spikes the inner edge. Blend each notch into the sides with convex arcs larger than the profile's half-width. [T]
+- 128 segments on a 16 mm radius (2.8 deg steps) showed bands even on a print-scale model; 192 segments plus smooth-by-angle shading in the .blend read as smooth. [T]
 
 ## Materials and colour
 
@@ -207,6 +211,7 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 ## Working with the owner
 
 - For physical models the bar is clean, not busy. Scattered balls, leaves hanging off a pilaster's edge, a flat-bar frame with balls on it and stringy relief leaves were all rejected as messy. One symmetric motif per face, kept inside the face, passed. Check close-ups of every detail before presenting; full views hid all of it. [T]
+- When the owner says a reference feature looks fragile, strengthen it modestly and keep it. Swapping the thin gold wire for a thick ball-ended volute was rejected; they wanted the wire about 10 % thicker. [T]
 
 - Reference fidelity is the main quality bar. Double-check before presenting. [W] [S1]
 - "Next project" with no brief means ask for the brief; do not resume set-aside work. [W]
