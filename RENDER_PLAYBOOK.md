@@ -3,7 +3,7 @@
 Lessons from real render projects, written for whoever runs the next render (mostly Claude). Each line comes from
 something that went wrong or was measured on a project, not from general advice.
 
-Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C]** Cliff House, **[N]** The Starry Night, **[M]** Impression, Sunrise.
+Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C]** Cliff House, **[N]** The Starry Night, **[M]** Impression, Sunrise, **[T]** Candy cane trophy (3D print).
 
 - Read **Preflight** before every render.
 - Read **Review** after every render.
@@ -77,6 +77,15 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 - SUBSURF on 300k-triangle canopy meshes crashed Blender 5.2 render evaluation; build the density into the mesh. [S2]
 - Blender 5.2 geometry-nodes modifier inputs are `md.properties.inputs.Socket_N.value`, numbered from 0, not the interface default. [C]
 
+## Printable models
+
+- Check the exported STL itself with a separate script: match vertices exactly and count edges not shared by exactly 2 faces, shells and signed volume. Blender called a mesh manifold while its STL had 135 edges shared by 4 faces. Rounding coordinates to 1e-5 mm merges distinct float32 vertices and fakes errors. [T]
+- Triangulate every part before a boolean. Cut quads come back as re-merged non-planar n-gons, and triangulating them (the STL exporter does too) reused existing edges: 20 bad edges on the base. Triangle inputs gave 0. [T]
+- Blender 5.2's MANIFOLD boolean solver unioned about 130 parts (235k triangles out) in about a second. EXACT took 12 s and left 228 bad edges where sweeps overlap themselves. [T]
+- A part that rises out of a surface at a shallow angle (a leaf lifting off a tube) pinches in the boolean. Keep its underside buried so it meets the surface with steep walls; that also leaves no undercut to support. [T]
+- Decor projected onto a tube from the front and clamped at the silhouette folds onto itself near the edge and breaks the boolean around it (382 bad edges from one leaf). Read in-plane distance as arc length around the tube instead. [T]
+- Two pieces touching at one exact spot (a ball on a piping line, a berry on a leaf) flip between clean and pinched with any change in triangulation. Move one so they clearly cross, then re-check. [T]
+
 ## Materials and colour
 
 - Stylized core: light through Shader-to-RGB into a smoothstep between lit and shade colours sampled from the reference with k-means. A higher Bias gives more shade. [S2] [C]
@@ -115,6 +124,7 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 
 - Run Blender with `-b --factory-startup` and enable any needed add-ons inside the script. [S2]
 - Run analysis Python with `-P`. [C]
+- Windows Python fails to open paths over 260 characters, and a session scratch folder was over that limit. Work in a folder with a shorter path. [T]
 - Long Bash heredocs with nested quotes can fail. Write patch scripts to a file instead. [C]
 - Chain build and render steps so a failure stops the chain. [N]
 - Black patches with straight edges on stacked transparent surfaces in EEVEE (dithered) were depth ties, not textures: strokes 0.1 micron apart. Keep overlapping pieces at least 10 microns apart and narrow the camera clip range around the subject. 3,025 black pixels fell to 80. [N]
