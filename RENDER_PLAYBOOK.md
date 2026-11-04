@@ -97,6 +97,9 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 - Don't scatter ornaments; lay them in groups along one stripe band. A group (sprig, star, sprig or gem, star, gem) is centred where a red band faces the front, with items spaced evenly along it. Tune the stripe angle a few degrees so a second group also lands on a red band. Lone gems and beads off any pattern read as "random". [T]
 - Add a fast build mode that skips the slow smoothing pass. Layout checks then take 30 s instead of 6 minutes, and the full pass runs once at the end. [T]
 - Join a bulb to a flat seat with a torus fillet about the vertical axis through the bulb's sphere, tangent to both. An offset ellipsoid "puddle" left a crease. [T]
+- A groove narrower than about 4 voxels (a 0.2 mm leaf midrib at 0.07 mm) came out of the SDF pass and decimation as a sawtooth. A convex ridge where two domed halves meet came out clean, so give fine details convex forms. [T]
+- Keep separate ornament pieces at least 0.65 mm apart, more than twice the smoothing radius, or the closing pass webs them together, and make the build assert it. A leaf whose stalk end lies in the open shows a blunt stub; start it under its berry. [T]
+- For a clean S-scroll, integrate a curvature that grows smoothly into each end, tanh(s/w) / (rho_end + g*d + g3*d^3) with d the length left to the tip. Turn it to its slimmest and scale it to the panel, then size each stud from the last turn so the curl wraps it. [T]
 
 ## Materials and colour
 
@@ -138,6 +141,8 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 - Run analysis Python with `-P`. [C]
 - Windows Python fails to open paths over 260 characters, and a session scratch folder was over that limit. Work in a folder with a shorter path. [T]
 - Long Bash heredocs with nested quotes can fail. Write patch scripts to a file instead. [C]
+- Piping a build through grep hides its exit code, so renders chained after a failed build used the old blend. Use `set -o pipefail`, delete the old output first, and check the new file exists before rendering. [T]
+- Lay out flat ornament as a 2D sketch first (PIL, about a second per variant). Then build and smooth only that area to check it (70 s) before the full build (7 minutes). [T]
 - Chain build and render steps so a failure stops the chain. [N]
 - Black patches with straight edges on stacked transparent surfaces in EEVEE (dithered) were depth ties, not textures: strokes 0.1 micron apart. Keep overlapping pieces at least 10 microns apart and narrow the camera clip range around the subject. 3,025 black pixels fell to 80. [N]
 - To find what a black patch is, swap one thing per render: canvas to magenta, world to green, colour to constant. It took 3 renders to rule out all three, then a list of the quads over the spot showed the tie. [N]
@@ -215,7 +220,14 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 
 ## Working with the owner
 
-- For physical models the bar is clean, not busy. Scattered balls, leaves hanging off a pilaster's edge, a flat-bar frame with balls on it and stringy relief leaves were all rejected as messy. One symmetric motif per face, kept inside the face, passed. Check close-ups of every detail before presenting; full views hid all of it. [T]
+- For physical models the bar is clean, not busy. All of these were rejected as messy:
+  - scattered balls;
+  - leaves hanging off a pilaster's edge;
+  - a flat-bar frame with balls on it;
+  - stringy relief leaves;
+  - a pilaster kept inside its face but still carrying the reference's eight same-size balls, two grooved ribbon scrolls and three leaves ("a complete mess").
+
+  Simplify the reference's motif rather than copying its parts. Check close-ups of every detail before presenting, because full views hid all of it. [T]
 - When the owner says a reference feature looks fragile, strengthen it modestly and keep it. Swapping the thin gold wire for a thick ball-ended volute was rejected; they wanted the wire about 10 % thicker. [T]
 - Compare each detail with the reference at the same framing: an orthographic front render of the same pixel region, side by side with the reference crop. It showed what full views hid: spindly scrolls, leaves half the size, berries too small. The owner had called it "sloppy" and asked to "really look at" the reference. Size ornaments from the reference crops, make clusters compact, and keep stripe lines out from under them. [T]
 - For a printed piece that will be handled, durability beats matching the reference. The owner asked for the holly that bent back past the column edge to sit on the face instead. Make the build fail if any leaf vertex leaves its face (an assert caught one 0.03 mm over). Keep berries few; three to a cluster plus gold balls everywhere was "way too common". [T]
