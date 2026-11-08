@@ -3,7 +3,7 @@
 Lessons from real render projects, written for whoever runs the next render (mostly Claude). Each line comes from
 something that went wrong or was measured on a project, not from general advice.
 
-Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C]** Cliff House, **[N]** The Starry Night, **[M]** Impression, Sunrise, **[T]** Candy cane trophy (3D print).
+Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C]** Cliff House, **[N]** The Starry Night, **[M]** Impression, Sunrise, **[T]** Candy cane trophy (3D print), **[B]** Basketball score display (3D print).
 
 - Read **Preflight** before every render.
 - Read **Review** after every render.
@@ -127,6 +127,8 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 - Measure the source surface's stretch along the cane before mapping: where the download's bend put the front on its outside, its surface ran 1.3-1.5 times the centre line's length, and its berries mapped onto a straighter cane came out oval. Put the stretch back per group and shrink the group to fit (0.78 here). [T]
 - Move a rigid piece (a ribbon with engraved lettering) with one similarity fitted to where the tube mapping puts its parts near the cane, and weld it with a few round posts where the band is at least 0.9 mm thick. Blending the two mappings creased the lettering, and a filled weld poked through where the band was paper-thin. An SDF closing of 0.1 mm blobbed 0.3 mm engraved strokes; 0.05 kept them. [T]
 - A union made after the SDF pass can leave sub-micron pinched edges that no nudge removes (10 tries, 1-6 each). Deleting the triangles within 0.05 mm of each and filling the holes gave 0 bad edges at the same volume. [T]
+- Scan each STL in its print orientation for faces pointing down more than 45 deg from vertical, away from the bed. The previews looked fine, but the scan found 1,634 mm2 of sloped ceiling under a stand's tilted slot holder and 72 mm2 on 0.3 mm snap catches at 49 deg. Fill the wedge under a tilted part down to the base. [B]
+- Size an enclosure from the board maker's own 3D model. Split its STL into connected parts and take each part's bounding box (PCB, screen glass, buttons, USB-C, reset); online specs for the same board disagreed by 7 mm. [B]
 
 ## Materials and colour
 
@@ -166,6 +168,7 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 
 - Run Blender with `-b --factory-startup` and enable any needed add-ons inside the script. [S2]
 - Run analysis Python with `-P`. [C]
+- `python -I` also hides user-site packages, so numpy installed with `pip --user` went missing. `-P` alone still keeps the script's folder off `sys.path` when reading downloaded files. [B]
 - Windows Python fails to open paths over 260 characters, and a session scratch folder was over that limit. Work in a folder with a shorter path. [T]
 - Long Bash heredocs with nested quotes can fail. Write patch scripts to a file instead. [C]
 - Piping a build through grep hides its exit code, so renders chained after a failed build used the old blend. Use `set -o pipefail`, delete the old output first, and check the new file exists before rendering. [T]
