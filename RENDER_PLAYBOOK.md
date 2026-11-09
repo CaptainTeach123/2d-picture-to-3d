@@ -3,7 +3,7 @@
 Lessons from real render projects, written for whoever runs the next render (mostly Claude). Each line comes from
 something that went wrong or was measured on a project, not from general advice.
 
-Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C]** Cliff House, **[N]** The Starry Night, **[M]** Impression, Sunrise, **[T]** Candy cane trophy (3D print), **[B]** Basketball score display (3D print).
+Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C]** Cliff House, **[N]** The Starry Night, **[M]** Impression, Sunrise, **[T]** Candy cane trophy (3D print), **[B]** Basketball score display (3D print), **[K]** Kansas Jayhawks score display (3D print).
 
 - Read **Preflight** before every render.
 - Read **Review** after every render.
@@ -53,6 +53,7 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 
 - Measure the reference; do not assume. Guessed signs, fire escapes and street-light counts each cost a correction round. Iconic features get the most verification time. [W]
 - Prefer a real photograph's solved camera over a painted image for geometry. [W]
+- Date reference photos of things that get redone. Photos of the same basketball floor from a few years apart had different lettering ("KANSAS JAYHAWKS" against "ALLEN FIELDHOUSE"); the venue's own recent photo and a dated news item about the refinish settled which to model. [K]
 - Paintings are not physically consistent: facade lines disagree, the horizon tilted 0.26 deg, and one low sun could not light both painted faces. Fit by least squares, use key + fill, and log the choice. [C]
 - Do not chase a colour box that compares different things. Where painted and modelled detail differ in position (windows, arcade), the number is meaningless. [C]
 - Measure before "fixing". A building that looked lit measured as a shade tone, so a light added for it was reverted. [C]
@@ -129,6 +130,9 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 - A union made after the SDF pass can leave sub-micron pinched edges that no nudge removes (10 tries, 1-6 each). Deleting the triangles within 0.05 mm of each and filling the holes gave 0 bad edges at the same volume. [T]
 - Scan each STL in its print orientation for faces pointing down more than 45 deg from vertical, away from the bed. The previews looked fine, but the scan found 1,634 mm2 of sloped ceiling under a stand's tilted slot holder and 72 mm2 on 0.3 mm snap catches at 49 deg. Fill the wedge under a tilted part down to the base. [B]
 - Size an enclosure from the board maker's own 3D model. Split its STL into connected parts and take each part's bounding box (PCB, screen glass, buttons, USB-C, reset); online specs for the same board disagreed by 7 mm. [B]
+- Check the STL at every size the build script offers, not only the default. A frame was clean at its default scale and had 4 to 8 bad edges at the other four, all where a bevel hull met a lip cut. Insetting a rounded rectangle keeps its corner vertices at the same angles, so a hull begun from an inset of the cut's outline always had an edge in the plane of a cut's corner edge, whatever the inset. Building the hull's ring with another segment count fixed every scale: 100 against the cut's 96. 88 did not, because it shares the 45-degree vertex. [K]
+- Print lettering from real glyph outlines (fontTools, curves flattened), then simplify to 0.01 mm before extruding; points closer than that collapsed in float32 into degenerate faces. Measure printability with an opening (offset by -w/2, then +w/2) and look at what it removes: at 3.2-3.4 mm cap height, Georgia Bold had 33 mm2 thinner than 0.4 mm until thickened by 0.13 mm with 0.2-0.3 mm of extra letter spacing. [K]
+- For a multi-colour flat print that single-nozzle printers can also make, give each colour its own height above the base (0.4 mm, then 0.8 mm) and ship one stacked file with filament changes at those heights alongside the separate colour files. [K]
 
 ## Materials and colour
 
@@ -138,6 +142,7 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 - Calibrate per material and check the result. Automatic ID-mask calibration is unreliable where objects overlap, and it turned yuccas navy. Thin objects drift; sample those by hand. [S1] [S2]
 - Compare tone shares, not only means. Rocks were lit on 45 % of their area against 25 % painted. [C]
 - Keep CC0 sources recorded next to the textures (Poly Haven scans worked well). [S2]
+- Render a print in its filament colours before recommending them. A white frame swallowed the white banner inside it, and a blue one merged with the court's blue border; crimson read against both. [K]
 
 ## Water and sky
 
