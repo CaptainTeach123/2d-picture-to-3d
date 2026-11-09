@@ -137,6 +137,7 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 - Build that stacked file by joining the same-height colours in 2D before extruding. Logo colours touching at single points gave a bad edge in the 3D union at one scale out of five; the 2D join was clean at all five. [K]
 - Trace a flat-colour logo faithfully and leave thin lines to the slicer: Arachne prints anything over its minimum feature size (25 % of the nozzle) at its minimum wall width (about 0.34 mm on a 0.4 nozzle). Widening sub-nozzle lines in the model made neighbouring colours eat each other: white wing spikes vanished under blue, floor-coloured gaps filled in and serifs went blobby. Give each 0.05 mm cell the colour covering most of it in the full-size image, and drop only specks under 0.12 mm. [K]
 - Five colours fit a four-slot printer when one colour lives only below a height and another only above it: give the wood floor and the yellow logo the same slot and swap the spool at a pause at the first layer above the floor. [K]
+- Cut inlay pockets as the plate minus its floor, after dropping floor narrower than 0.05 mm with 8-segment arcs and simplifying to 0.01 mm. The plain union of the colours left micron slivers between separately simplified colours (1 bad edge). Closing the pockets bridged near-touching serifs into new point contacts (17). Thinning the floor with fine round arcs made micro-arcs that collapsed in float32 (110). The coarse version was clean at all five scales. [K]
 
 ## Materials and colour
 
@@ -147,6 +148,8 @@ Tags: **[W]** Windsor Hotel, **[S1]** Stahl House, **[S2]** Stahl House v2, **[C
 - Compare tone shares, not only means. Rocks were lit on 45 % of their area against 25 % painted. [C]
 - Keep CC0 sources recorded next to the textures (Poly Haven scans worked well). [S2]
 - Render a print in its filament colours before recommending them. A white frame swallowed the white banner inside it, and a blue one merged with the court's blue border; crimson read against both. [K]
+- Choose filament colours from measured swatches, not vendor names. filamentcolors.xyz has an open API with about 2,300 colorimeter-measured swatches (Lab and translucency); ranked by CIEDE2000, matches for the brand colours came in at 1.7 to 3.6, while one major brand's closest red to the brand crimson was 8.6. [K]
+- Two layers of colour over a contrasting base are tinted by it: where measured, the filaments needed several mm to block light. Inlay colours into the base in the multi-colour files (0.6 mm deep, so 1.0 mm of paint), and back a light colour that has to stay on the surface with white. [K]
 
 ## Water and sky
 
